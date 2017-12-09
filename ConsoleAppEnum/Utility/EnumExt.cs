@@ -11,53 +11,43 @@ namespace ConsoleAppEnum.Utility
 {
     public static class EnumExt
     {
-        public static string GetDescriptionFromValue<T>(this T source)
+        public static E GetValueFromCustomDescription<A, E>(this string description) 
+          where A : System.Attribute
+          where E:  IComparable, IFormattable, IConvertible //enum
         {
-            FieldInfo fi = source.GetType().GetField(source.ToString());
-
-            DescriptionAttribute[] attributes = (DescriptionAttribute[])fi.GetCustomAttributes(
-                typeof(DescriptionAttribute), false);
-
-            if (attributes != null && attributes.Length > 0)
-                return attributes[0].Description;
-            else
-                return source.ToString();
-        }
-
-        public static T GetValueFromDescription<T>(string description)
-        {
-            var type = typeof(T);
-            if (!type.IsEnum) throw new InvalidOperationException();
+            var type = typeof(E);
+            string attribute_description = string.Empty;
             foreach (var field in type.GetFields())
             {
                 var attribute = Attribute.GetCustomAttribute(field,
-                    typeof(DescriptionAttribute)) as DescriptionAttribute;
+                    typeof(A)) as A;
                 if (attribute != null)
                 {
-                    if (attribute.Description == description)
-                        return (T)field.GetValue(null);
+                    if (typeof(A) == typeof(DescriptionAttribute))
+                        attribute_description = (attribute as DescriptionAttribute).Description;
+                    else
+                        //需確定客製化的attribute是否有overwite tostring
+                        attribute_description = attribute.ToString();
+
+                    if (attribute_description == description)
+                        return field.GetValue(null).GetJsonString().JsonConvertToModel<E>();
                 }
                 else
                 {
                     if (field.Name == description)
-                        return (T)field.GetValue(null);
+                        return field.GetValue(null).GetJsonString().JsonConvertToModel<E>();
                 }
             }
             throw new ArgumentException("Not found.", "description");
             // or return default(T);
         }
 
-        public static string GetCustomDescriptionFromValue<T>(this T source)
+        public static T GetAttributeFromEnum<T>(this System.Enum enumVal) where T : System.Attribute
         {
-            FieldInfo fi = source.GetType().GetField(source.ToString());
-
-            AnimalColorAttribute[] attributes = (AnimalColorAttribute[])fi.GetCustomAttributes(
-                typeof(AnimalColorAttribute), false);
-
-            if (attributes != null && attributes.Length > 0)
-                return attributes[0].Description;
-            else
-                return source.ToString();
+            var type = enumVal.GetType();
+            var memInfo = type.GetMember(enumVal.ToString());
+            var attributes = memInfo[0].GetCustomAttributes(typeof(T), false);
+            return (attributes.Length > 0) ? (T)attributes[0] : null;
         }
     }
 }

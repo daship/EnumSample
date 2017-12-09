@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 namespace ConsoleAppEnum.CustomAttribute
 {
     /// <summary>
-    /// 這是動物顏色
+    /// 這是動物尺寸
     /// </summary>
-    public class AnimalColorAttribute : Attribute
+    public class AnimalSizeAttribute : Attribute
     {
         public string Description { get; set; }
 
-        public AnimalColorAttribute(string Description)
+        public AnimalSizeAttribute(string Description)
         {
             this.Description = Description;
         }
@@ -22,6 +22,5 @@ namespace ConsoleAppEnum.CustomAttribute
         {
             return this.Description;
         }
-
     }
 }
